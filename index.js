@@ -10,5 +10,3 @@ async function startServer() {
         console.log(`Server running on port ${PORT}`);
     });
 }
-
-startServer();

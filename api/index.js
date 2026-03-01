@@ -1,7 +1,10 @@
+const serverless = require("serverless-http");
 const app = require("../src/app");
 const { connectRedis } = require("../src/config/redis");
 
 let isConnected = false;
+
+const handler = serverless(app);
 
 module.exports = async (req, res) => {
   if (!isConnected) {
@@ -9,5 +12,5 @@ module.exports = async (req, res) => {
     isConnected = true;
   }
 
-  return app(req, res);
+  return handler(req, res);
 };
