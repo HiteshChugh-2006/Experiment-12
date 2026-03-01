@@ -1,0 +1,12 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 10
+      arrivalRate: 10
+
+scenarios:
+  - flow:
+      - post:
+          url: "/booking"
+          json:
+            seatId: "A1"
