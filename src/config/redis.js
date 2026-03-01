@@ -7,6 +7,10 @@ async function getRedisClient() {
   if (!client) {
     client = createClient({
       url: process.env.REDIS_URL,
+      socket: {
+        tls: true,
+        rejectUnauthorized: false
+      }
     });
 
     client.on("error", (err) => {
@@ -14,7 +18,7 @@ async function getRedisClient() {
     });
 
     await client.connect();
-    console.log("✅ Redis Connected (Serverless)");
+    console.log("✅ Redis Connected (TLS)");
   }
 
   return client;
