@@ -1,50 +1,38 @@
-const { getRedisClient } = require("../config/redis");
+const { client } = require("../config/redis");
 const { v4: uuidv4 } = require("uuid");
 
-const LOCK_EXPIRY = 30; // 30 seconds
+const LOCK_PREFIX = "lock:seat:";
+const LOCK_TTL = 10; // seconds
 
-// Acquire Lock
+// Acquire lock
 async function acquireLock(seatId) {
-    const redisClient = await getRedisClient();
-    const lockKey = `lock:seat:${seatId}`;
-    const lockValue = uuidv4(); // unique lock owner
+  const lockKey = `${LOCK_PREFIX}${seatId}`;
+  const lockValue = uuidv4();
 
-    const result = await redisClient.set(lockKey, lockValue, {
-        NX: true,
-        EX: LOCK_EXPIRY
-    });
+  const result = await client.set(lockKey, lockValue, {
+    NX: true,
+    EX: LOCK_TTL,
+  });
 
-    if (!result) {
-        return null; // lock already exists
-    }
+  if (result === null) {
+    return null;
+  }
 
-    return lockValue; // return owner ID
+  return lockValue;
 }
 
-// Release Lock (Safe Unlock)
-// Safe atomic unlock using Lua script
+// Release lock
 async function releaseLock(seatId, lockValue) {
-    const redisClient = await getRedisClient();
-    const lockKey = `lock:seat:${seatId}`;
+  const lockKey = `${LOCK_PREFIX}${seatId}`;
 
-    const luaScript = `
-        if redis.call("get", KEYS[1]) == ARGV[1]
-        then
-            return redis.call("del", KEYS[1])
-        else
-            return 0
-        end
-    `;
+  const currentValue = await client.get(lockKey);
 
-    const result = await redisClient.eval(luaScript, {
-        keys: [lockKey],
-        arguments: [lockValue]
-    });
-
-    return result === 1;
+  if (currentValue === lockValue) {
+    await client.del(lockKey);
+  }
 }
 
 module.exports = {
-    acquireLock,
-    releaseLock
+  acquireLock,
+  releaseLock,
 };
