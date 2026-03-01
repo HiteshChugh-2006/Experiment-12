@@ -1,27 +1,19 @@
-require("dotenv").config();
-const { createClient } = require("redis");
+const redis = require("redis");
 
-let client;
+const client = redis.createClient({
+  url: process.env.REDIS_URL,
+});
 
-async function getRedisClient() {
-  if (!client) {
-    client = createClient({
-      url: process.env.REDIS_URL,
-      socket: {
-        tls: true,
-        rejectUnauthorized: false
-      }
-    });
+async function connectRedis() {
+  client.on("error", (err) => {
+    console.error("Redis Error:", err);
+  });
 
-    client.on("error", (err) => {
-      console.log("Redis Error:", err);
-    });
-
-    await client.connect();
-    console.log("✅ Redis Connected (TLS)");
-  }
-
-  return client;
+  await client.connect();
+  console.log("✅ Redis Connected");
 }
 
-module.exports = { getRedisClient };
+module.exports = {
+  client,
+  connectRedis,
+};
