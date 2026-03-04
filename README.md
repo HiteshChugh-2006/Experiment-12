@@ -10,8 +10,10 @@ _Live Demo_
 API Base URL:
 
 https://experiment-12.onrender.com
-API Usage
-Book a Seat
+
+**API Usage** 
+
+_Book a Seat_
 
 POST
 
